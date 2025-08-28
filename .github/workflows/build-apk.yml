@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Kivy Android APK
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
     - uses: actions/checkout@v3
@@ -18,38 +18,66 @@ jobs:
       with:
         python-version: '3.8'
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          git \
-          openjdk-11-jdk \
-          zlib1g-dev \
-          python3-pip \
-          python3-venv \
-          unzip \
-          libssl-dev \
-          libffi-dev
-
-    - name: Install Buildozer and dependencies
+    - name: Install Buildozer
       run: |
         pip install --upgrade pip
         pip install buildozer
-        pip install cython==0.29.33
+        pip install Cython==0.29.33
         pip install virtualenv
 
-    - name: Run Buildozer
+    - name: Set up Android SDK
       run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        
+        # Download and extract Android Command Line Tools
+        wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
+        mkdir -p ~/android-sdk/cmdline-tools/latest
+        unzip -q cmdline-tools.zip -d ~/android-sdk/cmdline-tools/latest
+        
+        # Set environment variables
+        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "$HOME/android-sdk/cmdline-tools/latest/cmdline-tools/bin" >> $GITHUB_PATH
+        
+        # Accept licenses
+        yes | ~/android-sdk/cmdline-tools/latest/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/android-sdk --licenses
+        
+        # Install required SDK components
+        ~/android-sdk/cmdline-tools/latest/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/android-sdk \
+          "platform-tools" \
+          "platforms;android-30" \
+          "build-tools;30.0.3" \
+          "ndk;21.3.6528147"
+
+    - name: Configure Buildozer
+      run: |
+        mkdir -p ~/.buildozer
         echo "[buildozer]" > ~/.buildozer/config.ini
         echo "log_level = 2" >> ~/.buildozer/config.ini
         echo "warn_on_root = 1" >> ~/.buildozer/config.ini
+        
+        # Update buildozer.spec with correct paths
+        ANDROID_SDK_ROOT=$HOME/android-sdk
+        ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/21.3.6528147
+        
+        sed -i "s|^android.sdk_path = .*|android.sdk_path = $ANDROID_SDK_ROOT|" buildozer.spec
+        sed -i "s|^android.ndk_path = .*|android.ndk_path = $ANDROID_NDK_HOME|" buildozer.spec
+
+    - name: Build APK
+      run: |
+        export ANDROID_SDK_ROOT=$HOME/android-sdk
+        export ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/21.3.6528147
+        export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
+        
+        # Build the APK
         buildozer -v android debug
 
-    - name: Upload APK Artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
         name: kasir-app
-        path: bin/*.apk*
+        path: |
+          bin/*.apk
+          bin/*.apk.*
         if-no-files-found: warn
         retention-days: 7
