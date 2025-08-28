@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,json,ttf
 version = 1.0
 
 # (list) Application requirements
-requirements = python3==3.8.10,kivy==2.0.0,requests,pillow,urllib3,certifi,android
+requirements = python3,kivy==2.0.0,requests,pillow,urllib3,certifi,android
 
 # (str) Orientation
 orientation = portrait
@@ -33,11 +33,8 @@ android.api = 30
 android.minapi = 21
 android.sdk = 30
 android.ndk = 21.3.6528147
-android.ndk_path = /home/runner/android-sdk/ndk/21.3.6528147
-android.sdk_path = /home/runner/android-sdk
 android.arch = arm64-v8a
 
 [buildozer]
 log_level = 2
 warn_on_root = 1
-target = android
