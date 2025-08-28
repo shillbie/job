@@ -8,46 +8,24 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    - name: Make build script executable
+      run: chmod +x build.sh
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          git \
-          unzip \
-          openjdk-11-jdk \
-          zlib1g-dev \
-          python3-pip \
-          python3-venv
+    - name: Run build script
+      run: ./build.sh
 
-    - name: Install Buildozer
-      run: |
-        pip install --upgrade pip
-        pip install buildozer
-        pip install cython==0.29.33
-
-    - name: Run Buildozer
-      run: |
-        echo "[buildozer]" > ~/.buildozer/config.ini
-        echo "log_level = 2" >> ~/.buildozer/config.ini
-        echo "warn_on_root = 1" >> ~/.buildozer/config.ini
-        buildozer -v android debug
-
-    - name: Upload APK
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v3
-      if: success() || failure()
       with:
         name: kasir-app
         path: |
           bin/*.apk
           bin/*.apk.*
+          ~/artifacts/*.apk*
+        if-no-files-found: warn
         retention-days: 7
