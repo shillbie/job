@@ -1,0 +1,32 @@
+[
+    {
+        "id": 2,
+        "name": "Dada Ayam",
+        "price_per_kg": 45000,
+        "stock_kg": 10.0
+    },
+    {
+        "id": 4,
+        "name": "Ceker Ayam",
+        "price_per_kg": 25000,
+        "stock_kg": 12.0
+    },
+    {
+        "id": 5,
+        "name": "Paha Ayam",
+        "price_per_kg": 40000,
+        "stock_kg": 20.0
+    },
+    {
+        "id": 6,
+        "name": "Leher Ayam",
+        "price_per_kg": 20000,
+        "stock_kg": 5.0
+    },
+    {
+        "id": "1756396255",
+        "name": "ed",
+        "price_per_kg": 33.0,
+        "stock_kg": 333.0
+    }
+]
