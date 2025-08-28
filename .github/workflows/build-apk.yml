@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK with Docker
 
 on:
   push:
@@ -8,24 +8,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Make build script executable
-      run: chmod +x build.sh
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-    - name: Run build script
-      run: ./build.sh
+    - name: Build Docker image
+      run: |
+        docker build -t kasir-app-builder .
+
+    - name: Run build in container
+      run: |
+        mkdir -p bin
+        docker run --rm \
+          -v "$(pwd)/bin:/app/bin" \
+          kasir-app-builder
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v3
       with:
         name: kasir-app
-        path: |
-          bin/*.apk
-          bin/*.apk.*
-          ~/artifacts/*.apk*
+        path: bin/*.apk*
         if-no-files-found: warn
         retention-days: 7
